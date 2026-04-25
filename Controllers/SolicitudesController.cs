@@ -144,6 +144,10 @@ public class SolicitudesController : Controller
             return NotFound();
         }
 
+        // GUARDAR EN SESIÓN LA ÚLTIMA SOLICITUD VISITADA
+        HttpContext.Session.SetString("UltimaSolicitudId", solicitud.Id.ToString());
+        HttpContext.Session.SetString("UltimaSolicitudMonto", solicitud.MontoSolicitado.ToString("C"));
+
         return View(solicitud);
     }
 
