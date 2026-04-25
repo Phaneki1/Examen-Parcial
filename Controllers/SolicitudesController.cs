@@ -50,32 +50,43 @@ public class SolicitudesController : Controller
 
         // REDIS CACHE: Buscar solicitudes en caché por 60 segundos
         string cacheKey = $"solicitudes_cache_{cliente.Id}";
-        string? cachedData = await _cache.GetStringAsync(cacheKey);
-        
         List<Examen_Parcial.Models.SolicitudCredito> todasLasSolicitudes;
         var jsonOptions = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles };
 
-        if (string.IsNullOrEmpty(cachedData))
+        try
         {
-            // No está en caché -> Consultar BD
+            string? cachedData = await _cache.GetStringAsync(cacheKey);
+
+            if (string.IsNullOrEmpty(cachedData))
+            {
+                // No está en caché -> Consultar BD
+                todasLasSolicitudes = await _context.Solicitudes
+                    .Include(s => s.Cliente)
+                    .Where(s => s.ClienteId == cliente.Id)
+                    .ToListAsync();
+
+                // Guardar en caché
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+                };
+                
+                cachedData = JsonSerializer.Serialize(todasLasSolicitudes, jsonOptions);
+                await _cache.SetStringAsync(cacheKey, cachedData, cacheOptions);
+            }
+            else
+            {
+                // Leer desde caché
+                todasLasSolicitudes = JsonSerializer.Deserialize<List<Examen_Parcial.Models.SolicitudCredito>>(cachedData, jsonOptions) ?? new List<Examen_Parcial.Models.SolicitudCredito>();
+            }
+        }
+        catch
+        {
+            // Fallback: Si Redis no responde, ir directo a la BD
             todasLasSolicitudes = await _context.Solicitudes
                 .Include(s => s.Cliente)
                 .Where(s => s.ClienteId == cliente.Id)
                 .ToListAsync();
-
-            // Guardar en caché
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
-            };
-            
-            cachedData = JsonSerializer.Serialize(todasLasSolicitudes, jsonOptions);
-            await _cache.SetStringAsync(cacheKey, cachedData, cacheOptions);
-        }
-        else
-        {
-            // Leer desde caché
-            todasLasSolicitudes = JsonSerializer.Deserialize<List<Examen_Parcial.Models.SolicitudCredito>>(cachedData, jsonOptions) ?? new List<Examen_Parcial.Models.SolicitudCredito>();
         }
 
         IEnumerable<Examen_Parcial.Models.SolicitudCredito> query = todasLasSolicitudes;
@@ -145,8 +156,12 @@ public class SolicitudesController : Controller
         }
 
         // GUARDAR EN SESIÓN LA ÚLTIMA SOLICITUD VISITADA
-        HttpContext.Session.SetString("UltimaSolicitudId", solicitud.Id.ToString());
-        HttpContext.Session.SetString("UltimaSolicitudMonto", solicitud.MontoSolicitado.ToString("C"));
+        try
+        {
+            HttpContext.Session.SetString("UltimaSolicitudId", solicitud.Id.ToString());
+            HttpContext.Session.SetString("UltimaSolicitudMonto", solicitud.MontoSolicitado.ToString("C"));
+        }
+        catch { /* Redis no disponible, continuar sin sesión */ }
 
         return View(solicitud);
     }
@@ -225,7 +240,7 @@ public class SolicitudesController : Controller
             await _context.SaveChangesAsync();
 
             // REDIS INVALIDATION: Borrar la caché al agregar nueva solicitud
-            await _cache.RemoveAsync($"solicitudes_cache_{cliente.Id}");
+            try { await _cache.RemoveAsync($"solicitudes_cache_{cliente.Id}"); } catch { /* Redis no disponible */ }
 
             TempData["Success"] = "¡Solicitud de crédito registrada con éxito! Entrará en proceso de evaluación.";
             return RedirectToAction(nameof(Index));
