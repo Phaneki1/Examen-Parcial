@@ -18,7 +18,9 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+    // Prioriza la configuración Redis:ConnectionString (que lee Redis__ConnectionString en Render)
+    options.Configuration = builder.Configuration["Redis:ConnectionString"] 
+                         ?? builder.Configuration.GetConnectionString("RedisConnection");
 });
 
 builder.Services.AddSession(options =>
