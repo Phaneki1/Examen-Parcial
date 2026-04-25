@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Examen_Parcial.Controllers;
 
@@ -12,11 +15,13 @@ public class SolicitudesController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IDistributedCache _cache;
 
-    public SolicitudesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    public SolicitudesController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IDistributedCache cache)
     {
         _context = context;
         _userManager = userManager;
+        _cache = cache;
     }
 
     // GET: Solicitudes
@@ -43,12 +48,37 @@ public class SolicitudesController : Controller
             return View(filter);
         }
 
-        // IQueryable para construir la consulta dinámicamente y asegurar que
-        // SOLO vea sus propias solicitudes.
-        var query = _context.Solicitudes
-            .Include(s => s.Cliente)
-            .Where(s => s.ClienteId == cliente.Id)
-            .AsQueryable();
+        // REDIS CACHE: Buscar solicitudes en caché por 60 segundos
+        string cacheKey = $"solicitudes_cache_{cliente.Id}";
+        string? cachedData = await _cache.GetStringAsync(cacheKey);
+        
+        List<Examen_Parcial.Models.SolicitudCredito> todasLasSolicitudes;
+        var jsonOptions = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles };
+
+        if (string.IsNullOrEmpty(cachedData))
+        {
+            // No está en caché -> Consultar BD
+            todasLasSolicitudes = await _context.Solicitudes
+                .Include(s => s.Cliente)
+                .Where(s => s.ClienteId == cliente.Id)
+                .ToListAsync();
+
+            // Guardar en caché
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+            };
+            
+            cachedData = JsonSerializer.Serialize(todasLasSolicitudes, jsonOptions);
+            await _cache.SetStringAsync(cacheKey, cachedData, cacheOptions);
+        }
+        else
+        {
+            // Leer desde caché
+            todasLasSolicitudes = JsonSerializer.Deserialize<List<Examen_Parcial.Models.SolicitudCredito>>(cachedData, jsonOptions) ?? new List<Examen_Parcial.Models.SolicitudCredito>();
+        }
+
+        IEnumerable<Examen_Parcial.Models.SolicitudCredito> query = todasLasSolicitudes;
 
         // 1. Filtro por Estado
         if (filter.Estado.HasValue)
@@ -78,8 +108,8 @@ public class SolicitudesController : Controller
             query = query.Where(s => s.FechaSolicitud.Date <= filter.FechaFin.Value.Date);
         }
 
-        // Ejecutar consulta y ordenar
-        filter.Solicitudes = await query.OrderByDescending(s => s.FechaSolicitud).ToListAsync();
+        // Ejecutar consulta y ordenar en memoria
+        filter.Solicitudes = query.OrderByDescending(s => s.FechaSolicitud).ToList();
 
         return View(filter);
     }
@@ -189,6 +219,9 @@ public class SolicitudesController : Controller
 
             _context.Solicitudes.Add(nuevaSolicitud);
             await _context.SaveChangesAsync();
+
+            // REDIS INVALIDATION: Borrar la caché al agregar nueva solicitud
+            await _cache.RemoveAsync($"solicitudes_cache_{cliente.Id}");
 
             TempData["Success"] = "¡Solicitud de crédito registrada con éxito! Entrará en proceso de evaluación.";
             return RedirectToAction(nameof(Index));
