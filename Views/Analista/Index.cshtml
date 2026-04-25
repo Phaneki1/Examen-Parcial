@@ -1,0 +1,114 @@
+@model IEnumerable<Examen_Parcial.Models.SolicitudCredito>
+
+@{
+    ViewData["Title"] = "Panel de Analista";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0 text-danger"><i class="bi bi-shield-lock"></i> Panel de Analista</h1>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <strong>¡Éxito!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <strong>Atención:</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-list-task"></i> Solicitudes Pendientes de Evaluación</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-5 text-center text-muted">
+                <h4>🎉</h4>
+                <p class="mb-0 fs-5">No hay solicitudes pendientes en este momento. ¡Todo al día!</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Cliente (Email)</th>
+                            <th>Ingresos Mensuales</th>
+                            <th>Monto Solicitado</th>
+                            <th>Fecha</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">#@item.Id</td>
+                                <td>@item.Cliente!.Usuario!.UserName</td>
+                                <td>@item.Cliente.IngresosMensuales.ToString("C")</td>
+                                <td class="fw-bold text-primary">@item.MontoSolicitado.ToString("C")</td>
+                                <td>@item.FechaSolicitud.ToLocalTime().ToString("g")</td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group" role="group">
+                                        <!-- Formulario de Aprobación -->
+                                        <form asp-action="Aprobar" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('¿Estás seguro de APROBAR la solicitud #@item.Id del cliente @item.Cliente.Usuario.UserName?');">
+                                                Aprobar
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Botón que abre el Modal de Rechazo -->
+                                        <button type="button" class="btn btn-sm btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#rechazarModal-@item.Id">
+                                            Rechazar
+                                        </button>
+                                    </div>
+
+                                    <!-- Modal Bootstrap de Rechazo -->
+                                    <div class="modal fade text-start" id="rechazarModal-@item.Id" tabindex="-1" aria-labelledby="rechazarModalLabel-@item.Id" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form asp-action="Rechazar" method="post">
+                                                    <div class="modal-header bg-danger text-white">
+                                                        <h5 class="modal-title" id="rechazarModalLabel-@item.Id">Rechazar Solicitud #@item.Id</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="SolicitudId" value="@item.Id" />
+                                                        <div class="mb-3">
+                                                            <label for="motivo-@item.Id" class="form-label fw-bold">Motivo de Rechazo:</label>
+                                                            <textarea id="motivo-@item.Id" name="MotivoRechazo" class="form-control" rows="3" required minlength="10" placeholder="Escribe al menos 10 caracteres..."></textarea>
+                                                            <div class="form-text text-muted">Este motivo es obligatorio para el rechazo.</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer bg-light">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger fw-bold">Confirmar Rechazo</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
