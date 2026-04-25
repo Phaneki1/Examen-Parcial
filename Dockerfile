@@ -1,10 +1,10 @@
 # Usa la imagen oficial de ASP.NET Core Runtime para ejecutar la app
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
 # Usa la imagen del SDK para compilar
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["Examen Parcial.csproj", "./"]
 RUN dotnet restore "./Examen Parcial.csproj"
