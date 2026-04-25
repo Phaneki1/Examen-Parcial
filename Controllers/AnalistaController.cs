@@ -62,7 +62,7 @@ public class AnalistaController : Controller
         await _context.SaveChangesAsync();
 
         // Requerimiento Pregunta 4: Invalidar caché del cliente cuando cambia el estado
-        await _cache.RemoveAsync($"solicitudes_cache_{solicitud.ClienteId}");
+        try { await _cache.RemoveAsync($"solicitudes_cache_{solicitud.ClienteId}"); } catch { /* Redis no disponible */ }
 
         TempData["Success"] = $"Solicitud #{id} aprobada con éxito.";
         return RedirectToAction(nameof(Index));
@@ -97,7 +97,7 @@ public class AnalistaController : Controller
         await _context.SaveChangesAsync();
 
         // Requerimiento Pregunta 4: Invalidar caché del cliente cuando cambia el estado
-        await _cache.RemoveAsync($"solicitudes_cache_{solicitud.ClienteId}");
+        try { await _cache.RemoveAsync($"solicitudes_cache_{solicitud.ClienteId}"); } catch { /* Redis no disponible */ }
 
         TempData["Success"] = $"Solicitud #{model.SolicitudId} rechazada exitosamente.";
         return RedirectToAction(nameof(Index));
