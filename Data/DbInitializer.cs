@@ -29,7 +29,7 @@ public static class DbInitializer
             await userManager.AddToRoleAsync(analista, "Analista");
         }
 
-        // 3. Clientes (Usuarios Identity y Entidad de Dominio)
+        // 3. Cliente
         var clienteUser1 = await userManager.FindByEmailAsync("cliente1@banco.com");
         if (clienteUser1 == null)
         {
@@ -44,31 +44,15 @@ public static class DbInitializer
             });
         }
 
-        var clienteUser2 = await userManager.FindByEmailAsync("cliente2@banco.com");
-        if (clienteUser2 == null)
-        {
-            clienteUser2 = new IdentityUser { UserName = "cliente2@banco.com", Email = "cliente2@banco.com", EmailConfirmed = true };
-            await userManager.CreateAsync(clienteUser2, "Password123!");
+        await context.SaveChangesAsync();
 
-            context.Clientes.Add(new Cliente 
-            { 
-                UsuarioId = clienteUser2.Id, 
-                IngresosMensuales = 5000, 
-                Activo = true 
-            });
-        }
-
-        await context.SaveChangesAsync(); // Guardamos los clientes antes de insertar las solicitudes
-
-        // 4. Solicitudes (1 Pendiente, 1 Aprobada)
+        // 4. Solicitud de ejemplo (1 Pendiente para cliente1)
         if (!await context.Solicitudes.AnyAsync())
         {
             var cl1 = await context.Clientes.FirstOrDefaultAsync(c => c.UsuarioId == clienteUser1.Id);
-            var cl2 = await context.Clientes.FirstOrDefaultAsync(c => c.UsuarioId == clienteUser2.Id);
 
             if (cl1 != null)
             {
-                // Pendiente (no mayor a 5 veces sus ingresos de 2000 = 10000 max)
                 context.Solicitudes.Add(new SolicitudCredito
                 {
                     ClienteId = cl1.Id,
@@ -78,19 +62,8 @@ public static class DbInitializer
                 });
             }
 
-            if (cl2 != null)
-            {
-                // Aprobada (no mayor a 5 veces sus ingresos de 5000 = 25000 max)
-                context.Solicitudes.Add(new SolicitudCredito
-                {
-                    ClienteId = cl2.Id,
-                    MontoSolicitado = 10000,
-                    Estado = EstadoSolicitud.Aprobado,
-                    FechaSolicitud = DateTime.UtcNow.AddDays(-1)
-                });
-            }
-
             await context.SaveChangesAsync();
         }
     }
 }
+
