@@ -1,96 +1,96 @@
-# Plataforma de Créditos — Gestión de Solicitudes y Evaluación
+# 🏦 FinCredit — Plataforma de Evaluación Crediticia
 
-Plataforma web interna desarrollada para una entidad financiera. Permite a los usuarios autenticados registrar solicitudes de crédito, asegurando reglas de negocio como evitar que el cliente exceda su capacidad de pago y garantizando que solo exista una solicitud activa por cliente. Los analistas de riesgo utilizan la plataforma para evaluar, aprobar o rechazar dichas solicitudes.
+Plataforma web desarrollada con arquitectura empresarial para la gestión, evaluación y aprobación de solicitudes de crédito. Permite a los clientes enviar solicitudes bajo estrictas reglas de negocio (validación de capacidad de pago) y provee a los analistas de riesgo un dashboard profesional para su evaluación.
 
-## 🚀 Tecnologías (Stack)
+## 🚀 Tecnologías y Stack
 
-- **Framework**: ASP.NET Core MVC (.NET 8)
-- **Autenticación**: ASP.NET Core Identity
-- **ORM & Base de Datos**: Entity Framework Core con SQLite (Local) / PostgreSQL (Opcional en Prod)
-- **Caché y Sesiones**: Redis (Gestionado en RedisLabs)
-- **Vistas**: Razor Views
-- **Despliegue**: Render.com (Web Service)
+- **Framework Core**: ASP.NET Core MVC (.NET 10.0)
+- **Seguridad**: ASP.NET Core Identity (Autenticación y Autorización basada en Roles)
+- **Base de Datos & ORM**: Entity Framework Core 10 con SQLite
+- **Caché y Alto Rendimiento**: Redis (Caché Distribuida y Almacenamiento de Sesiones)
+- **Diseño UI/UX**: Bootstrap 5 + Iconografía (Diseño limpio y corporativo)
+- **Despliegue y DevOps**: Docker, Render.com (Como Web Service)
 
-## ⚙️ Requisitos Previos
+## ✨ Características Principales
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Una instancia de [Redis](https://app.redislabs.com/) en la nube o instalada localmente para la gestión de sesiones.
-- Herramientas de CLI de Entity Framework Core (`dotnet tool install --global dotnet-ef`).
-- Git.
+- **Registro de Solicitudes**: Límite estricto de crédito basado en los ingresos declarados (hasta 10 veces el salario).
+- **Control de Flujo**: Restricción de una sola solicitud "Pendiente" por usuario a la vez.
+- **Panel de Analista**: Acceso restringido por rol (`Analista`). Permite aprobar o rechazar solicitudes. El rechazo exige un motivo obligatorio y detallado.
+- **Rendimiento Acelerado**: Uso intensivo de `IDistributedCache` con Redis para mantener en memoria las listas de solicitudes por usuario, minimizando las llamadas a la base de datos.
+- **Auditoría de Sesión**: Registro del último inicio de sesión utilizando `HttpContext.Session` respaldado por Redis.
+- **Seguridad CSRF**: Implementación de `[ValidateAntiForgeryToken]` en todos los envíos de formularios.
 
-## 🛠️ Variables de Entorno
+## ⚙️ Requisitos Previos (Desarrollo Local)
 
-Para ejecutar la aplicación correctamente, se deben configurar las siguientes variables de entorno. 
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Instancia de [Redis](https://redis.io/) (Local o Cloud como RedisLabs)
+- Docker (Opcional, para pruebas de contenedor local)
+- Herramientas de CLI de Entity Framework Core (`dotnet tool install --global dotnet-ef`)
 
-En un entorno local de desarrollo, puedes añadirlas en tu archivo `appsettings.Development.json` o usando `dotnet user-secrets`.
+## 🛠️ Configuración del Entorno Local
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=app.db",
-    "RedisConnection": "TU_CADENA_DE_CONEXION_REDIS_AQUI"
-  }
-}
-```
-
-*Nota: Asegúrate de no subir nunca contraseñas ni cadenas de conexión reales de producción al repositorio de GitHub.*
-
-## 💻 Pasos Locales (Instalación y Ejecución)
-
-1. **Clonar el repositorio**:
+1. **Clonar y restaurar**:
    ```bash
    git clone <URL_DEL_REPOSITORIO>
    cd "Examen Parcial"
-   ```
-
-2. **Restaurar las dependencias**:
-   ```bash
    dotnet restore
    ```
 
-3. **Aplicar las migraciones (Base de Datos)**:
-   Asegúrate de estar en la carpeta donde se encuentra el `.csproj`.
+2. **Configurar Secretos (Variables de Entorno)**:
+   Añadir la cadena de conexión de Redis en `appsettings.Development.json` o usando User Secrets:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Data Source=app.db"
+     },
+     "Redis": {
+       "ConnectionString": "TU_CADENA_REDIS_AQUI"
+     }
+   }
+   ```
+
+3. **Aplicar Migraciones**:
    ```bash
    dotnet ef database update
    ```
 
-4. **Ejecutar la aplicación**:
+4. **Ejecutar la Plataforma**:
    ```bash
    dotnet run
    ```
-   La aplicación se levantará y estará disponible en el navegador (usualmente en `http://localhost:5000` o `https://localhost:5001`).
 
-## 🗄️ Migraciones de Base de Datos
+## 🔑 Credenciales de Prueba (Seed Data)
 
-El proyecto utiliza **Entity Framework Core Code-First**. Para gestionar cambios en la estructura de la base de datos:
+Al ejecutarse por primera vez (o al aplicar migraciones), el sistema crea automáticamente estos usuarios para que puedas probar la aplicación de inmediato:
 
-- **Crear una nueva migración** (después de modificar los modelos):
-  ```bash
-  dotnet ef migrations add NombreDescriptivoDeLaMigracion
-  ```
-- **Aplicar migraciones pendientes**:
-  ```bash
-  dotnet ef database update
-  ```
+**Analista de Riesgo (Rol: Analista)**
+- **Email:** `analista@banco.com`
+- **Password:** `Password123!`
+*(Puede ver todas las solicitudes y aprobar/rechazar)*
 
-## ☁️ Despliegue en Render
+**Clientes (Rol por defecto)**
+- **Email:** `cliente1@banco.com` | **Password:** `Password123!` (Ingresos: $2,000)
+- **Email:** `cliente2@banco.com` | **Password:** `Password123!` (Ingresos: $5,000)
+*(Pueden crear nuevas solicitudes y ver su propio historial)*
 
-El proyecto está diseñado para ser desplegado en [Render.com](https://render.com/) como un Web Service.
+## ☁️ Despliegue en Producción (Render & Docker)
 
-**URL de Producción:**  
-🔗 `[AÑADIR_URL_DE_RENDER_AQUI]` *(Se actualizará una vez completado el despliegue)*
+La aplicación está completamente dockerizada para garantizar la consistencia entre el entorno de desarrollo y producción.
 
-**Configuración en Render:**
-- **Entorno:** `.NET`
-- **Build Command:** `dotnet build -c Release` (o un script de bash personalizado si es necesario compilar vistas o ejecutar migraciones).
-- **Start Command:** `dotnet run -c Release` (o especificar el dll generado).
-- **Variables de Entorno (Environment Variables):**
-  - Es mandatorio agregar la variable `ConnectionStrings__RedisConnection` con la URL de tu instancia en RedisLabs.
-  - Para persistir SQLite en Render, asegúrate de configurar un [Disk](https://render.com/docs/disks) apuntando a la ruta del `app.db`.
+### Configuración en Render.com
+1. Crear un nuevo **Web Service**.
+2. Conectar el repositorio de GitHub y la rama `deploy/render`.
+3. Seleccionar el entorno **Docker**.
+4. Añadir las siguientes Variables de Entorno (Environment Variables):
+   - `ASPNETCORE_ENVIRONMENT` = `Production`
+   - `ASPNETCORE_URLS` = `http://0.0.0.0:${PORT}`
+   - `Redis__ConnectionString` = `<URL_DE_REDIS>` (Usar doble guion bajo `__` para inyección de dependencias en Linux).
+   - `ConnectionStrings__DefaultConnection` = `Data Source=app.db`
+5. (Opcional) Configurar un **Disk** montado en el directorio de la aplicación para preservar la base de datos SQLite `app.db` entre despliegues.
 
-## 🌳 Flujo de Trabajo (Git / Control de Versiones)
+## 🌳 Arquitectura de Control de Versiones
 
-El desarrollo se gestiona a través de GitHub siguiendo reglas estrictas:
-- La rama `main` contiene el código base. **No se permiten commits directos a `main`**.
-- Cada pregunta/funcionalidad del examen se desarrolla en una rama independiente (ejemplo: `feature/pregunta-1`, `feature/evaluacion-riesgo`).
-- Al finalizar el trabajo en una rama, se debe crear un **Pull Request (PR)** hacia `main` para fusionar los cambios.
+El proyecto sigue un esquema estricto de Git:
+- **`main`**: Código estable y verificado.
+- **`deploy/render`**: Rama destinada exclusivamente a los despliegues automatizados hacia producción.
+- **`feature/*`**: Ramas de desarrollo temporal donde se trabajan las nuevas características antes de hacer un Pull Request.
