@@ -1,8 +1,63 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Finanzas Inteligentes";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mt-5 pt-4 fade-in-up">
+    <div class="mb-4">
+        <i class="bi bi-wallet2 text-gradient" style="font-size: 5rem;"></i>
+    </div>
+    <h1 class="display-3 fw-bolder mb-4 text-white">Finanzas del Futuro, <span class="text-gradient">Hoy.</span></h1>
+    <p class="lead text-muted mb-5 mx-auto" style="max-width: 600px;">
+        Plataforma inteligente de evaluación crediticia. Obtén respuesta en tiempo real con nuestra tecnología de análisis financiero y algoritmos avanzados.
+    </p>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="d-flex justify-content-center gap-3 fade-in-up delay-1">
+            <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
+                Ir a Mis Solicitudes <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+            @if (User.IsInRole("Analista"))
+            {
+                <a asp-controller="Analista" asp-action="Index" class="btn btn-outline-info btn-lg px-5 py-3 rounded-pill fw-bold">
+                    Panel de Análisis <i class="bi bi-activity ms-2"></i>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-center gap-3 fade-in-up delay-1">
+            <a href="/Identity/Account/Login" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
+                Comenzar Ahora <i class="bi bi-lightning-charge-fill ms-2"></i>
+            </a>
+            <a href="/Identity/Account/Register" class="btn btn-outline-info btn-lg px-5 py-3 rounded-pill fw-bold">
+                Crear Cuenta Libre
+            </a>
+        </div>
+    }
+
+    <div class="row mt-5 pt-5 fade-in-up delay-2 text-start">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 p-4 border-0 text-center glass-card">
+                <i class="bi bi-shield-check text-success mb-3" style="font-size: 2.5rem; text-shadow: 0 0 20px rgba(0,255,163,0.5);"></i>
+                <h5 class="fw-bold text-white">Aprobación Segura</h5>
+                <p class="text-muted small">Algoritmos de riesgo validados para garantizar transacciones 100% blindadas.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 p-4 border-0 text-center glass-card">
+                <i class="bi bi-lightning text-warning mb-3" style="font-size: 2.5rem; text-shadow: 0 0 20px rgba(245,158,11,0.5);"></i>
+                <h5 class="fw-bold text-white">Respuesta Inmediata</h5>
+                <p class="text-muted small">Caché distribuida de baja latencia para que evalúes tu crédito en milisegundos.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 p-4 border-0 text-center glass-card">
+                <i class="bi bi-graph-up-arrow text-info mb-3" style="font-size: 2.5rem; text-shadow: 0 0 20px rgba(56,189,248,0.5);"></i>
+                <h5 class="fw-bold text-white">Escalabilidad Nube</h5>
+                <p class="text-muted small">Infraestructura preparada para millones de solicitudes concurrentes de forma estable.</p>
+            </div>
+        </div>
+    </div>
 </div>
