@@ -8,12 +8,13 @@
     <title>@ViewData["Title"] - Examen_Parcial</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Examen_Parcial.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <header class="pt-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark rounded-pill mx-lg-5 mx-3 px-4 mb-4">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Examen_Parcial</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -58,7 +59,7 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container fade-in-up delay-1">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
