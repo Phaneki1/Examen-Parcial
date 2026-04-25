@@ -59,6 +59,20 @@ Plataforma web desarrollada con arquitectura empresarial para la gestión, evalu
    dotnet run
    ```
 
+## 🔑 Credenciales de Prueba (Seed Data)
+
+Al ejecutarse por primera vez (o al aplicar migraciones), el sistema crea automáticamente estos usuarios para que puedas probar la aplicación de inmediato:
+
+**Analista de Riesgo (Rol: Analista)**
+- **Email:** `analista@banco.com`
+- **Password:** `Password123!`
+*(Puede ver todas las solicitudes y aprobar/rechazar)*
+
+**Clientes (Rol por defecto)**
+- **Email:** `cliente1@banco.com` | **Password:** `Password123!` (Ingresos: $2,000)
+- **Email:** `cliente2@banco.com` | **Password:** `Password123!` (Ingresos: $5,000)
+*(Pueden crear nuevas solicitudes y ver su propio historial)*
+
 ## ☁️ Despliegue en Producción (Render & Docker)
 
 La aplicación está completamente dockerizada para garantizar la consistencia entre el entorno de desarrollo y producción.
