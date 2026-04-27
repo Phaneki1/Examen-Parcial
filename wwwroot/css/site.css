@@ -10,7 +10,7 @@
   --ocean-blue: #0ea5e9; /* Ocean Blue */
   --ocean-dark: #0284c7;
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-muted: #cbd5e1;
   --danger-glow: #ef4444;
   --warning-glow: #f59e0b;
 }
@@ -347,7 +347,8 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .alert-info { background: rgba(14, 165, 233, 0.15); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.3); }
 .btn-close-white { filter: invert(1); }
 
-/* Fixes for ASP.NET Identity */
+/* Fixes for ASP.NET Identity & Bootstrap */
+.text-muted { color: var(--text-muted) !important; }
 a { color: var(--ocean-blue); text-decoration: none; transition: color 0.2s; }
 a:hover { color: var(--primary-glow); }
 .text-dark { color: var(--text-main) !important; }
