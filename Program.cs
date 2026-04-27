@@ -19,8 +19,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     // Prioriza la configuración Redis:ConnectionString (que lee Redis__ConnectionString en Render)
-    options.Configuration = builder.Configuration["Redis:ConnectionString"] 
-                         ?? builder.Configuration.GetConnectionString("RedisConnection");
+    var redisConn = builder.Configuration["Redis:ConnectionString"] 
+                 ?? builder.Configuration.GetConnectionString("RedisConnection");
+    
+    // abortConnect=false evita que la app explote si Redis no está disponible al arrancar
+    if (!string.IsNullOrEmpty(redisConn) && !redisConn.Contains("abortConnect"))
+    {
+        redisConn += ",abortConnect=false,connectTimeout=5000,syncTimeout=3000";
+    }
+    options.Configuration = redisConn;
+    options.InstanceName = "ExamenParcial_";
 });
 
 builder.Services.AddSession(options =>
@@ -58,7 +66,10 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseRouting();
 
 app.UseSession();

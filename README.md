@@ -68,10 +68,9 @@ Al ejecutarse por primera vez (o al aplicar migraciones), el sistema crea autom�
 - **Password:** `Password123!`
 *(Puede ver todas las solicitudes y aprobar/rechazar)*
 
-**Clientes (Rol por defecto)**
+**Cliente**
 - **Email:** `cliente1@banco.com` | **Password:** `Password123!` (Ingresos: $2,000)
-- **Email:** `cliente2@banco.com` | **Password:** `Password123!` (Ingresos: $5,000)
-*(Pueden crear nuevas solicitudes y ver su propio historial)*
+*(Puede crear solicitudes y ver su historial)*
 
 ## ☁️ Despliegue en Producción (Render & Docker)
 

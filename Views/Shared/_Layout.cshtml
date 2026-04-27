@@ -35,16 +35,20 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Solicitudes" asp-action="Index">Mis Solicitudes</a>
                             </li>
                             
-                            var ultimaId = HttpContextAccessor.HttpContext?.Session.GetString("UltimaSolicitudId");
-                            var ultimaMonto = HttpContextAccessor.HttpContext?.Session.GetString("UltimaSolicitudMonto");
-                            if (!string.IsNullOrEmpty(ultimaId))
+                            @try
                             {
-                                <li class="nav-item ms-lg-3">
-                                    <a class="nav-link text-primary fw-bold" asp-area="" asp-controller="Solicitudes" asp-action="Details" asp-route-id="@ultimaId">
-                                        ⏱️ Ver última solicitud (@ultimaMonto)
-                                    </a>
-                                </li>
+                                var ultimaId = HttpContextAccessor.HttpContext?.Session.GetString("UltimaSolicitudId");
+                                var ultimaMonto = HttpContextAccessor.HttpContext?.Session.GetString("UltimaSolicitudMonto");
+                                if (!string.IsNullOrEmpty(ultimaId))
+                                {
+                                    <li class="nav-item ms-lg-3">
+                                        <a class="nav-link text-primary fw-bold" asp-area="" asp-controller="Solicitudes" asp-action="Details" asp-route-id="@ultimaId">
+                                            ⏱️ Ver última solicitud (@ultimaMonto)
+                                        </a>
+                                    </li>
+                                }
                             }
+                            catch { /* Redis no disponible, ignorar */ }
 
                             @if (User.IsInRole("Analista"))
                             {
